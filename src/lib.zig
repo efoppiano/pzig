@@ -7,10 +7,6 @@ pub const DataWithFn = @import("utils/message.zig").DataWithFn;
 pub const initiate_worker = @import("utils/worker.zig").initiate_worker;
 pub const Worker = @import("utils/worker.zig").Worker;
 
-const c = @cImport({
-    @cInclude("sys/sysinfo.h");
-});
-
 pub const Config = struct { n_threads: ?usize = null, batch_size: usize = 1, allocator: std.mem.Allocator };
 
 pub fn ParallelMap(comptime R: type, comptime S: type, comptime Ctx: type) type {
@@ -28,7 +24,7 @@ pub fn ParallelMap(comptime R: type, comptime S: type, comptime Ctx: type) type 
         batch_size: usize,
 
         pub fn init(config: Config) !Self {
-            const n_threads: usize = if (config.n_threads != null) config.n_threads.? else @intCast(c.get_nprocs());
+            const n_threads: usize = if (config.n_threads != null) config.n_threads.? else @intCast(try std.Thread.getCpuCount());
 
             var threads = try config.allocator.alloc(Thread, n_threads);
             var workers = try config.allocator.alloc(Worker(R, S, Ctx), n_threads);
