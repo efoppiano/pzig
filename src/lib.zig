@@ -132,7 +132,7 @@ pub fn ParallelMap(comptime R: type, comptime S: type, comptime Ctx: type) type 
             return results;
         }
 
-        pub fn map_stateless(self: *Self, func: *const fn (R) S, input: []const R, results: []S) !void {
+        fn map_no_ctx(self: *Self, func: *const fn (R) S, input: []const R, results: []S) !void {
             std.debug.assert(results.len >= input.len);
             std.debug.assert(Ctx == u0);
 
@@ -142,24 +142,46 @@ pub fn ParallelMap(comptime R: type, comptime S: type, comptime Ctx: type) type 
 
         /// Allocates the results array
         /// Invoker owns the array, and must free it
-        pub fn map_stateless_alloc(self: *Self, func: *const fn (R) S, input: []const R) ![]S {
+        fn map_no_ctx_alloc(self: *Self, func: *const fn (R) S, input: []const R) ![]S {
             std.debug.assert(Ctx == u0);
 
             const results = try self.allocator.alloc(S, input.len);
-            try self.map_stateless(func, input, results);
+            try self.map_no_ctx(func, input, results);
             return results;
         }
     };
 }
 
-pub fn similarMap(comptime R: type, comptime T: type) type {
+pub fn SimilarMap(comptime R: type, comptime T: type) type {
     return ParallelMap(R, R, T);
 }
 
-pub fn statelessMap(comptime R: type, comptime S: type) type {
-    return ParallelMap(R, S, u0);
+pub fn NoContextMap(comptime R: type, comptime S: type) type {
+    return struct {
+        const Self = @This();
+
+        inner: ParallelMap(R, S, u0),
+
+        pub fn init(config: Config) !Self {
+            return Self{ .inner = try ParallelMap(R, S, u0).init(config) };
+        }
+
+        pub fn destroy(self: *Self) !void {
+            return self.inner.destroy();
+        }
+
+        pub fn map(self: *Self, func: *const fn (R) S, input: []const R, results: []S) !void {
+            return self.inner.map_no_ctx(func, input, results);
+        }
+
+        /// Allocates the results array
+        /// Invoker owns the array, and must free it
+        pub fn map_alloc(self: *Self, func: *const fn (R) S, input: []const R) ![]S {
+            return self.inner.map_no_ctx_alloc(func, input);
+        }
+    };
 }
 
-pub fn statelessSimilarMap(comptime R: type) type {
-    return ParallelMap(R, R, u0);
+pub fn BasicMap(comptime R: type) type {
+    return NoContextMap(R, R);
 }
