@@ -3,3 +3,7 @@ zig-cache
 
 .idea
 .vscode
+.zigmod
+deps.zig
+files.zig
+zigmod.lock
