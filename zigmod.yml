@@ -1,0 +1,6 @@
+id: inwjht4q12p583r2vy4w7kp3mayah3zbqrc27je9sl6j2mi7
+name: pzig
+main: src/lib.zig
+license: MIT
+description: A simple data paralellism library for Zig
+dependencies:
