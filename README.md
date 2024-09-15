@@ -1,6 +1,6 @@
 # pzig
 
-A simple data paralellism library for Zig.
+A simple data parallelism library for Zig.
 
 This library is a work in progress and is not suitable for production use. Any feedback is welcome.
 
